@@ -523,6 +523,30 @@ func testRateLimitingForBurstTraffic() {
 	}
 }
 
+func testContext() {
+	// deadline test
+	{
+		ctx := context.Background()
+		fmt.Printf("now = %v\n", time.Now())
+		ctx, _ = context.WithDeadline(ctx, time.Now().Add(time.Hour))
+		if deadline, ok := ctx.Deadline(); !ok {
+			fmt.Printf("no deadline for context %v", ctx)
+		} else {
+			fmt.Printf("deadline = %v\n", deadline)
+		}
+	}
+
+	// value test
+	ctx := context.Background()
+	key := "hello"
+	subCtx := context.WithValue(ctx, key, "world")
+	if val, ok := subCtx.Value(key).(string); ok {
+		fmt.Printf("value for key = %v is %v\n", key, val)
+	} else {
+		fmt.Printf("no value for key = %v\n", key)
+	}
+}
+
 func main() {
 	// testReadClosedChannel()
 	// testContextWithTimeout()
@@ -533,7 +557,9 @@ func main() {
 
 	//testRateLimiting()
 	//testRateLimitingForTokenInterval()
-	testRateLimitingForBurstTraffic()
+	//testRateLimitingForBurstTraffic()
+
+	testContext()
 
 	//switch "chat" {
 	switch "nothing" {
