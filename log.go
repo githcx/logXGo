@@ -488,6 +488,41 @@ func testRateLimiting() {
 	fmt.Printf("rate limiting test completed, comsumed %v ms\n", time.Now().Sub(begin).Milliseconds())
 }
 
+func testRateLimitingForTokenInterval() {
+	r := rate.Every(time.Millisecond * 1000)
+	l := rate.NewLimiter(r, 5)
+
+	for {
+		ctx, _ := context.WithTimeout(context.Background(), 2*time.Second)
+		if err := l.Wait(ctx); err != nil {
+			break
+		}
+
+		go func() {
+			time.Sleep(time.Millisecond * 500)
+			if !l.Allow() {
+				fmt.Printf("Access not allowed at %v\n", time.Now())
+			}
+		}()
+
+		fmt.Printf("Access Permitted at %v\n", time.Now())
+	}
+}
+
+func testRateLimitingForBurstTraffic() {
+	r := rate.Every(time.Millisecond * 5000)
+	l := rate.NewLimiter(r, 9)
+
+	for {
+		if !l.Allow() {
+			fmt.Printf("Access Denied at %v, tokens = %f\n", time.Now(), l.Tokens())
+			<-time.After(time.Millisecond * 1000)
+		} else {
+			fmt.Printf("Access Permitted at %v, tokens = %f\n", time.Now(), l.Tokens())
+		}
+	}
+}
+
 func main() {
 	// testReadClosedChannel()
 	// testContextWithTimeout()
@@ -496,7 +531,9 @@ func main() {
 
 	//testRedisWithContextPractice()
 
-	testRateLimiting()
+	//testRateLimiting()
+	//testRateLimitingForTokenInterval()
+	testRateLimitingForBurstTraffic()
 
 	//switch "chat" {
 	switch "nothing" {
